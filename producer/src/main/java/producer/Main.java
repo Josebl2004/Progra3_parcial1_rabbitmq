@@ -38,6 +38,8 @@ public class Main {
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+        
+        //primer comentario
 
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
@@ -55,6 +57,7 @@ public class Main {
             }
         }
     }
+    // segundo comentario
 
     private static int fetchAndPublish(HttpClient client, Channel channel) {
         try {
