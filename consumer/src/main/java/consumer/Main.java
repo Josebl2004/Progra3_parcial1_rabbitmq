@@ -47,7 +47,7 @@ public class Main {
     private static void startConsumer(Channel channel, String queue) throws Exception {
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             processMessage(queue, delivery);
-            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);//tercer comentario
+            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);//Tercer comentario
         };
 
         CancelCallback cancelCallback = consumerTag ->

@@ -57,7 +57,7 @@ public class Main {
             }
         }
     }
-    // segundo comentario
+    // Segundo comentario
 
     private static int fetchAndPublish(HttpClient client, Channel channel) {
         try {
