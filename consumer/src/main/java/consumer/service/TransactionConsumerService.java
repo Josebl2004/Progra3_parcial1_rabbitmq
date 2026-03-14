@@ -141,7 +141,7 @@ public class TransactionConsumerService {
             boolean postSuccess = postClient.sendTransaction(request);
 
             if (postSuccess) {
-                logEstado(originalId, "PROCESADA", queue);
+                logEstado(uniqueId, "PROCESADA", queue);
             }
 
             return postSuccess;
