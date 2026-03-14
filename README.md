@@ -1,7 +1,8 @@
+Link de video: https://drive.google.com/file/d/1U1IzpqDTfTtKrOJ2zSbuatXcYqLRfUCF/view?usp=drive_link
 
-# 🧪 Procesamiento de Transacciones Bancarias con RabbitMQ y Java
+# Procesamiento de Transacciones Bancarias con RabbitMQ y Java
 
-# 📖 Descripción del Proyecto
+# Descripción del Proyecto
 
 Este proyecto implementa un sistema distribuido para el procesamiento de transacciones bancarias utilizando RabbitMQ como sistema de colas de mensajería y Java + Maven como tecnología principal.
 
@@ -14,7 +15,7 @@ Flujo general:
 3. Consumir las transacciones desde colas independientes
 4. Enviar cada transacción a otra API (POST) para almacenarla
 
-# 🏗 Arquitectura del Sistema
+# Arquitectura del Sistema
 
 El sistema implementa el patrón Producer–Consumer utilizando RabbitMQ como intermediario.
 
@@ -28,7 +29,7 @@ Consumer (Java)
    |
 API (POST)
 
-# 🧩 Componentes del Sistema
+# Componentes del Sistema
 
 # Producer
 
