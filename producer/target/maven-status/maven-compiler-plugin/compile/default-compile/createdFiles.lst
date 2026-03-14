@@ -1,1 +1,8 @@
-producer/Main.class
+producer\Main.class
+producer\model\TransactionDetail.class
+producer\config\RabbitMQConfig.class
+producer\model\TransactionBatch.class
+producer\client\TransactionApiClient.class
+producer\model\Transaction.class
+producer\model\TransactionReferences.class
+producer\service\TransactionPublisherService.class
