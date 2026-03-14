@@ -33,6 +33,12 @@ public class TransactionConsumerService {
         channel.basicPublish("", "cola_duplicados", MessageProperties.PERSISTENT_TEXT_PLAIN, payload);
     }
 
+    private void logEstado(String idTransaccion, String estado, String colaDestino) {
+        System.out.println("idTransaccion: " + idTransaccion
+                + " | estado: " + estado
+                + " | COLA DESTINO: " + colaDestino);
+    }
+
 
 
     public TransactionConsumerService(ObjectMapper objectMapper,
