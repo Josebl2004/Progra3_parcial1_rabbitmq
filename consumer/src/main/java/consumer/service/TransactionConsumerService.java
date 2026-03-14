@@ -8,6 +8,12 @@ import com.rabbitmq.client.Delivery;
 import consumer.client.TransactionPostClient;
 import consumer.model.Transaction;
 import consumer.model.TransactionPostRequest;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.MessageProperties;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -18,6 +24,16 @@ public class TransactionConsumerService {
     private final TransactionPostClient postClient;
     private final String studentName;
     private final String studentCard;
+    private final Set<String> processedIds = ConcurrentHashMap.newKeySet();
+    
+    private void sendToDuplicateQueue(Channel channel, Transaction transaction) throws Exception {
+        byte[] payload = objectMapper.writeValueAsString(transaction).getBytes(StandardCharsets.UTF_8);
+
+        channel.queueDeclare("cola_duplicados", true, false, false, null);
+        channel.basicPublish("", "cola_duplicados", MessageProperties.PERSISTENT_TEXT_PLAIN, payload);
+    }
+
+
 
     public TransactionConsumerService(ObjectMapper objectMapper,
                                       TransactionPostClient postClient,
@@ -44,7 +60,7 @@ public class TransactionConsumerService {
         long tag = delivery.getEnvelope().getDeliveryTag();
 
         try {
-            boolean success = processWithRetry(queue, delivery, 2);
+        	boolean success = processWithRetry(channel, queue, delivery, 2);
 
             if (success) {
                 channel.basicAck(tag, false);
@@ -64,9 +80,9 @@ public class TransactionConsumerService {
         }
     }
 
-    private boolean processWithRetry(String queue, Delivery delivery, int maxAttempts) {
+    private boolean processWithRetry(Channel channel, String queue, Delivery delivery, int maxAttempts) {
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            boolean success = processMessage(queue, delivery, attempt);
+            boolean success = processMessage(channel, queue, delivery, attempt);
             if (success) {
                 return true;
             }
@@ -75,7 +91,8 @@ public class TransactionConsumerService {
         return false;
     }
 
-    private boolean processMessage(String queue, Delivery delivery, int attempt) {
+
+    private boolean processMessage(Channel channel, String queue, Delivery delivery, int attempt) {
         try {
             String payload = new String(delivery.getBody(), StandardCharsets.UTF_8);
             Transaction transaction = objectMapper.readValue(payload, Transaction.class);
@@ -86,6 +103,18 @@ public class TransactionConsumerService {
             }
 
             String originalId = safe(transaction.getIdTransaccion());
+
+            if (originalId.isEmpty()) {
+                System.err.println("ID de transacción vacío. Cola: " + queue);
+                return false;
+            }
+
+            if (!processedIds.add(originalId)) {
+                sendToDuplicateQueue(channel, transaction);
+                logEstado(originalId, "DUPLICADA", "cola_duplicados");
+                return true;
+            }
+
             String uniqueId = originalId + "-" + UUID.randomUUID();
 
             TransactionPostRequest request = new TransactionPostRequest();
@@ -95,15 +124,21 @@ public class TransactionConsumerService {
             request.setCuentaOrigen(transaction.getCuentaOrigen());
             request.setBancoDestino(transaction.getBancoDestino());
             request.setDetalle(transaction.getDetalle());
-            request.setNombre("Mario Jose Barrera");
-            request.setCarnet("0905-23-13800");
+            request.setNombre(studentName);
+            request.setCarnet(studentCard);
 
             System.out.println("Procesando transacción. Cola: " + queue
                     + " | Intento: " + attempt
                     + " | ID original: " + originalId
                     + " | ID nuevo: " + uniqueId);
 
-            return postClient.sendTransaction(request);
+            boolean postSuccess = postClient.sendTransaction(request);
+
+            if (postSuccess) {
+                logEstado(originalId, "PROCESADA", queue);
+            }
+
+            return postSuccess;
 
         } catch (Exception e) {
             System.err.println("Error en processMessage. Cola: " + queue
@@ -112,6 +147,7 @@ public class TransactionConsumerService {
             return false;
         }
     }
+
 
     private String safe(String value) {
         return value == null ? "" : value.trim();

@@ -43,6 +43,9 @@ public class Main {
         Channel channel = connection.createChannel();
 
         channel.basicQos(1);
+        
+        channel.queueDeclare("cola_duplicados", true, false, false, null);
+
 
         for (String queue : BANK_QUEUES) {
             channel.queueDeclare(queue, true, false, false, null);
